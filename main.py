@@ -133,7 +133,8 @@ st.caption(
 )
 
 selectors = {}
-if any_site:
+target = st.radio("What to crawl", ["My application", "A practice site"], horizontal=True) if any_site else "A practice site"
+if target == "My application":
     c1, c2, c3 = st.columns(3)
     url = c1.text_input("Login page URL", placeholder="https://your-app.example.com/login")
     username = c2.text_input("Username")
@@ -201,6 +202,9 @@ with st.expander("Elements by page"):
                            "Visible": e.visible} for e in p.elements]),
             hide_index=True, width="stretch",
         )
+if result.log:
+    with st.expander("Crawl log (what was clicked and where it led)"):
+        st.code("\n".join(result.log), language="text")
 st.download_button("Save crawl (JSON)", result.model_dump_json(indent=1), "crawl.json", "application/json")
 
 # ---------------------------------------------------------------- 3 · generate

@@ -332,19 +332,30 @@ def crawl(
 
             # 2) Link-like elements that navigate with JavaScript (SPAs): click once each, note where we land.
             clicks = 0
+            path = urlparse(url).path
+            result.log.append(f"VISIT {path}: {len(raws)} elements")
             for idx, r in enumerate(raws):
-                if clicks >= config.MAX_CLICKS_PER_PAGE or not r["visible"]:
-                    continue
                 kind = _kind(r)
+                label = (r["text"] or next((v for v in r["testids"].values() if v), "") or r["id"] or r["tag"])[:40]
+                if clicks >= config.MAX_CLICKS_PER_PAGE:
+                    break
+                if not r["visible"]:
+                    if kind == "link" and not (r["href"] and not r["href"].startswith(("#", "javascript:"))):
+                        result.log.append(f"  skip  {kind} '{label}': not visible")
+                    continue
                 has_real_href = r["tag"] == "a" and r["href"] and not r["href"].startswith(("#", "javascript:"))
                 navigational = (kind == "link" and not has_real_href) or (
                     kind == "button" and any(w in (r["text"] or "").lower() for w in config.NAV_BUTTON_WORDS)
                 )
                 labels = (r["text"], r["href"], r["id"], *r["testids"].values())
-                if not navigational or _is_unsafe(*labels) or _changes_state(*labels):
+                if not navigational:
+                    continue
+                if _is_unsafe(*labels) or _changes_state(*labels):
+                    result.log.append(f"  skip  {kind} '{label}': unsafe or changes data")
                     continue
                 sig = url_template(url) + "|" + kind + "|" + re.sub(r"\d+", "N", r["id"] or r["text"])
                 if sig in clicked_signatures:
+                    result.log.append(f"  skip  {kind} '{label}': same as one already clicked")
                     continue
                 clicked_signatures.add(sig)
                 clicks += 1
@@ -356,9 +367,16 @@ def crawl(
                     page.locator(_COLLECT_SELECTOR_BY_INDEX).nth(idx).click(timeout=3000)
                     page.wait_for_timeout(config.SETTLE_MS)
                     landed = page.url
-                    if same_origin(landed) and url_template(landed) not in visited:
-                        queue.append(landed)
-                except Exception:
+                    if landed == url or url_template(landed) == url_template(url):
+                        result.log.append(f"  click {kind} '{label}': stayed on the page")
+                    elif not same_origin(landed):
+                        result.log.append(f"  click {kind} '{label}': left the site ({landed})")
+                    else:
+                        result.log.append(f"  click {kind} '{label}': -> {urlparse(landed).path}")
+                        if url_template(landed) not in visited:
+                            queue.append(landed)
+                except Exception as exc:
+                    result.log.append(f"  click {kind} '{label}': FAILED {type(exc).__name__}: {str(exc).splitlines()[0][:120]}")
                     continue
             if page.url != url:
                 try:

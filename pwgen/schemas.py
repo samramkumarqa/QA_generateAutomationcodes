@@ -35,6 +35,7 @@ class CrawlResult(BaseModel):
     common: PageModel | None = None  # elements shared by most pages (header, menu ...)
     pages: list[PageModel] = []
     skipped: list[str] = []        # URLs/links deliberately not followed, for the report
+    log: list[str] = []            # what the explorer clicked and where it landed, for debugging
 
 
 # ---------------------------------------------------------------- test cases (input)
