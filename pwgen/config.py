@@ -22,10 +22,13 @@ UNSAFE_WORDS = [
     "place order", "finish", "confirm", "submit order", "buy now", "checkout complete",
 ]
 # Buttons are only clicked during exploration when their text looks navigational.
+# (Not "open"/"menu": those toggle overlays rather than navigate.)
 NAV_BUTTON_WORDS = [
-    "view", "details", "open", "go to", "next", "continue shopping", "back", "checkout",
-    "cart", "profile", "settings", "orders", "dashboard", "home", "more", "show",
+    "view", "details", "go to", "next", "continue shopping", "back", "checkout",
+    "profile", "settings", "orders", "dashboard", "home",
 ]
+# Clicking these changes the app's data, so exploration never clicks them (they are still recorded).
+STATE_CHANGING_WORDS = ["add to", "add-to", "remove", "save", "update", "submit", "apply", "edit"]
 
 # ---- Where the crawler may go
 # On the public demo only these practice sites (with their published test logins) are allowed.

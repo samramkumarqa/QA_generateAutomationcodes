@@ -112,6 +112,11 @@ def _is_unsafe(*texts: str) -> bool:
     return any(w in blob for w in config.UNSAFE_WORDS)
 
 
+def _changes_state(*texts: str) -> bool:
+    blob = " ".join(t.lower() for t in texts if t)
+    return any(w in blob for w in config.STATE_CHANGING_WORDS)
+
+
 def _candidates(raw: dict, kind: str, test_id_attr: str) -> list[tuple[str, str, str]]:
     """Locator options in order of preference: (strategy, value, role)."""
     opts: list[tuple[str, str, str]] = []
@@ -335,7 +340,8 @@ def crawl(
                 navigational = (kind == "link" and not has_real_href) or (
                     kind == "button" and any(w in (r["text"] or "").lower() for w in config.NAV_BUTTON_WORDS)
                 )
-                if not navigational or _is_unsafe(r["text"], r["href"], r["id"], *r["testids"].values()):
+                labels = (r["text"], r["href"], r["id"], *r["testids"].values())
+                if not navigational or _is_unsafe(*labels) or _changes_state(*labels):
                     continue
                 sig = url_template(url) + "|" + kind + "|" + re.sub(r"\d+", "N", r["id"] or r["text"])
                 if sig in clicked_signatures:
@@ -343,9 +349,10 @@ def crawl(
                 clicked_signatures.add(sig)
                 clicks += 1
                 try:
-                    if page.url != url:
-                        page.goto(url, wait_until="domcontentloaded")
-                        _settle(page)
+                    # Fresh page before every click: an earlier click may have opened a menu or
+                    # overlay that would block this one even though the URL didn't change.
+                    page.goto(url, wait_until="domcontentloaded")
+                    _settle(page)
                     page.locator(_COLLECT_SELECTOR_BY_INDEX).nth(idx).click(timeout=3000)
                     page.wait_for_timeout(config.SETTLE_MS)
                     landed = page.url

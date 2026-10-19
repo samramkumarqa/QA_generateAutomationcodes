@@ -14,10 +14,12 @@ function renderBadge() {
   if (!b) return; const n = cart().length; b.textContent = n; b.style.display = n ? 'inline-block' : 'none';
 }
 function header() {
-  return `<header><button id="react-burger-menu-btn" data-test="open-menu" onclick="document.querySelector('nav').style.display='block'">Open Menu</button>
+  return `<header><button id="react-burger-menu-btn" data-test="open-menu" onclick="document.querySelector('nav').style.display='block';document.querySelector('.overlay').style.display='block'">Open Menu</button>
   <span class="logo">Practice Shop</span>
   <a class="cart" data-test="shopping-cart-link" onclick="go('cart.html')">Cart <span data-test="shopping-cart-badge"></span></a></header>
-  <nav style="display:none">
+  <div class="overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:5"
+       onclick="this.style.display='none';document.querySelector('nav').style.display='none'"></div>
+  <nav style="display:none;position:fixed;top:0;left:0;z-index:6;background:#fff">
     <a id="inventory_sidebar_link" href="#" onclick="go('inventory.html')">All Items</a>
     <a id="logout_sidebar_link" href="#" onclick="localStorage.clear(); go('index.html')">Logout</a>
     <a id="reset_sidebar_link" href="#" onclick="localStorage.removeItem('cart'); renderBadge()">Reset App State</a>
