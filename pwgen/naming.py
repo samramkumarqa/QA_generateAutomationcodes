@@ -68,7 +68,8 @@ KIND_SUFFIX = {
 def element_name(source_text: str, kind: str, taken: set[str]) -> str:
     base = camel(source_text) or kind
     suffix = KIND_SUFFIX.get(kind, "")
-    if suffix and not base.lower().endswith(suffix.lower()):
+    # Keep a role word the name already ends with: "shopping-cart-link" -> shoppingCartLink, not ...LinkButton.
+    if suffix and not any(base.lower().endswith(w.lower()) for w in set(KIND_SUFFIX.values())):
         base += suffix
     base = base[:48]
     if base in JS_RESERVED or base in RESERVED_MEMBERS:

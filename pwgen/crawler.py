@@ -112,6 +112,27 @@ def _is_unsafe(*texts: str) -> bool:
     return any(w in blob for w in config.UNSAFE_WORDS)
 
 
+_NAV_HINT = re.compile(r"(^|[-_ ])(link|nav|navigation|sidebar|menu-item|cart|basket|tab)([-_ ]|$)")
+
+
+def _looks_navigational(raw: dict) -> bool:
+    """Buttons that navigate: by visible text ("View details") or by how they're marked up.
+    Many apps build links as buttons, e.g. saucedemo's cart: <button data-test="shopping-cart-link"
+    aria-label="Cart, empty">, which has no visible text at all."""
+    text = " ".join([raw["text"], raw["ariaLabel"]]).lower()
+    if any(w in text for w in config.NAV_BUTTON_WORDS):
+        return True
+    hints = " ".join([raw["id"], raw["ariaLabel"], *raw["testids"].values()]).lower()
+    return bool(_NAV_HINT.search(hints))
+
+
+def _is_menu_opener(raw: dict) -> bool:
+    if _kind(raw) != "button":
+        return False
+    blob = " ".join([raw["text"], raw["ariaLabel"], raw["id"], *raw["testids"].values()]).lower()
+    return ("menu" in blob or "hamburger" in blob or "navbar-toggler" in blob) and "close" not in blob
+
+
 def _changes_state(*texts: str) -> bool:
     blob = " ".join(t.lower() for t in texts if t)
     return any(w in blob for w in config.STATE_CHANGING_WORDS)
@@ -336,20 +357,22 @@ def crawl(
             result.log.append(f"VISIT {path}: {len(raws)} elements")
             for idx, r in enumerate(raws):
                 kind = _kind(r)
-                label = (r["text"] or next((v for v in r["testids"].values() if v), "") or r["id"] or r["tag"])[:40]
+                label = (r["ariaLabel"] or r["text"] or next((v for v in r["testids"].values() if v), "")
+                         or r["id"] or r["tag"])[:40]
                 if clicks >= config.MAX_CLICKS_PER_PAGE:
                     break
-                if not r["visible"]:
-                    if kind == "link" and not (r["href"] and not r["href"].startswith(("#", "javascript:"))):
-                        result.log.append(f"  skip  {kind} '{label}': not visible")
-                    continue
                 has_real_href = r["tag"] == "a" and r["href"] and not r["href"].startswith(("#", "javascript:"))
-                navigational = (kind == "link" and not has_real_href) or (
-                    kind == "button" and any(w in (r["text"] or "").lower() for w in config.NAV_BUTTON_WORDS)
-                )
+                navigational = (kind == "link" and not has_real_href) or (kind == "button" and _looks_navigational(r))
                 labels = (r["text"], r["href"], r["id"], *r["testids"].values())
                 if not navigational:
                     continue
+                opener = None
+                if not r["visible"]:
+                    # Hidden menu item: open the menu first (hamburger / "Open Menu" button).
+                    opener = next((i for i, o in enumerate(raws) if o["visible"] and _is_menu_opener(o)), None)
+                    if opener is None:
+                        result.log.append(f"  skip  {kind} '{label}': hidden and no menu button found")
+                        continue
                 if _is_unsafe(*labels) or _changes_state(*labels):
                     result.log.append(f"  skip  {kind} '{label}': unsafe or changes data")
                     continue
@@ -364,6 +387,9 @@ def crawl(
                     # overlay that would block this one even though the URL didn't change.
                     page.goto(url, wait_until="domcontentloaded")
                     _settle(page)
+                    if opener is not None:
+                        page.locator(_COLLECT_SELECTOR_BY_INDEX).nth(opener).click(timeout=3000)
+                        page.wait_for_timeout(500)
                     page.locator(_COLLECT_SELECTOR_BY_INDEX).nth(idx).click(timeout=3000)
                     page.wait_for_timeout(config.SETTLE_MS)
                     landed = page.url

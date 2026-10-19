@@ -20,11 +20,11 @@
    },
    {
     "name": "shoppingCartLink",
-    "kind": "link",
+    "kind": "button",
     "strategy": "testId",
     "value": "shopping-cart-link",
     "role": "",
-    "description": "Link \"Cart\"",
+    "description": "Button \"Cart\"",
     "visible": true
    },
    {
@@ -37,30 +37,39 @@
     "visible": false
    },
    {
-    "name": "allItemsLink",
-    "kind": "link",
-    "strategy": "css",
-    "value": "#inventory_sidebar_link",
+    "name": "inventorySidebarLink",
+    "kind": "button",
+    "strategy": "testId",
+    "value": "inventory-sidebar-link",
     "role": "",
-    "description": "Link \"All Items\"",
+    "description": "Button \"All Items\"",
     "visible": false
    },
    {
-    "name": "logoutLink",
-    "kind": "link",
-    "strategy": "css",
-    "value": "#logout_sidebar_link",
+    "name": "ordersSidebarLink",
+    "kind": "button",
+    "strategy": "testId",
+    "value": "orders-sidebar-link",
     "role": "",
-    "description": "Link \"Logout\"",
+    "description": "Button \"Orders\"",
     "visible": false
    },
    {
-    "name": "resetAppStateLink",
-    "kind": "link",
-    "strategy": "css",
-    "value": "#reset_sidebar_link",
+    "name": "logoutSidebarLink",
+    "kind": "button",
+    "strategy": "testId",
+    "value": "logout-sidebar-link",
     "role": "",
-    "description": "Link \"Reset App State\"",
+    "description": "Button \"Logout\"",
+    "visible": false
+   },
+   {
+    "name": "resetSidebarLink",
+    "kind": "button",
+    "strategy": "testId",
+    "value": "reset-sidebar-link",
+    "role": "",
+    "description": "Button \"Reset App State\"",
     "visible": false
    },
    {
@@ -244,6 +253,23 @@
    ]
   },
   {
+   "name": "OrdersPage",
+   "url": "/orders.html",
+   "title": "Practice Shop",
+   "is_login": false,
+   "elements": [
+    {
+     "name": "ordersEmptyText",
+     "kind": "text",
+     "strategy": "testId",
+     "value": "orders-empty",
+     "role": "",
+     "description": "Text \"No orders yet\"",
+     "visible": true
+    }
+   ]
+  },
+  {
    "name": "ItemPage",
    "url": "/item.html",
    "title": "Practice Shop",
@@ -274,6 +300,15 @@
      "value": "inventory-item-price",
      "role": "",
      "description": "Text \"$29.99\"",
+     "visible": true
+    },
+    {
+     "name": "addToCartBackpackButton",
+     "kind": "button",
+     "strategy": "testId",
+     "value": "add-to-cart-backpack",
+     "role": "",
+     "description": "Button \"Add to cart\"",
      "visible": true
     }
    ]
@@ -341,5 +376,47 @@
    ]
   }
  ],
- "skipped": []
+ "skipped": [],
+ "log": [
+  "VISIT /inventory.html: 17 elements",
+  "  click button 'Cart': -> /cart.html",
+  "  click button 'All Items': stayed on the page",
+  "  click button 'Orders': -> /orders.html",
+  "  skip  button 'Logout': unsafe or changes data",
+  "  skip  button 'Reset App State': unsafe or changes data",
+  "  click link 'Trail Backpack': -> /item.html",
+  "  skip  button 'Add to cart': unsafe or changes data",
+  "  skip  link 'Bike Light': same as one already clicked",
+  "  skip  button 'Add to cart': unsafe or changes data",
+  "  skip  link 'Bolt T-Shirt': same as one already clicked",
+  "  skip  button 'Add to cart': unsafe or changes data",
+  "VISIT /cart.html: 10 elements",
+  "  click button 'Cart': stayed on the page",
+  "  click button 'All Items': -> /inventory.html",
+  "  click button 'Orders': -> /orders.html",
+  "  skip  button 'Logout': unsafe or changes data",
+  "  skip  button 'Reset App State': unsafe or changes data",
+  "  click button 'Continue Shopping': -> /inventory.html",
+  "  click button 'Checkout': -> /checkout-step-one.html",
+  "VISIT /orders.html: 9 elements",
+  "  click button 'Cart': -> /cart.html",
+  "  click button 'All Items': -> /inventory.html",
+  "  click button 'Orders': stayed on the page",
+  "  skip  button 'Logout': unsafe or changes data",
+  "  skip  button 'Reset App State': unsafe or changes data",
+  "VISIT /item.html: 11 elements",
+  "  click button 'Cart': -> /cart.html",
+  "  click button 'All Items': -> /inventory.html",
+  "  click button 'Orders': -> /orders.html",
+  "  skip  button 'Logout': unsafe or changes data",
+  "  skip  button 'Reset App State': unsafe or changes data",
+  "  click button 'Back to products': -> /inventory.html",
+  "  skip  button 'Add to cart': unsafe or changes data",
+  "VISIT /checkout-step-one.html: 14 elements",
+  "  click button 'Cart': -> /cart.html",
+  "  click button 'All Items': -> /inventory.html",
+  "  click button 'Orders': -> /orders.html",
+  "  skip  button 'Logout': unsafe or changes data",
+  "  skip  button 'Reset App State': unsafe or changes data"
+ ]
 }

@@ -33,6 +33,7 @@ def test_page_and_element_names():
     taken = set()
     assert element_name("Login", "button", taken) == "loginButton"
     assert element_name("Login", "button", taken) == "loginButton2"
+    assert element_name("shopping-cart-link", "button", set()) == "shoppingCartLink"
     assert element_name("delete", "text", set()) == "deleteText"
     assert element_name("page", "", set()) == "pageEl"  # would shadow BasePage.page
 
@@ -70,7 +71,7 @@ def live_crawl(site_url):
 
 def test_crawl_finds_unique_pages_and_logs_in(live_crawl):
     names = [p.name for p in live_crawl.pages]
-    assert names == ["LoginPage", "InventoryPage", "CartPage", "ItemPage", "CheckoutStepOnePage"]
+    assert names == ["LoginPage", "InventoryPage", "CartPage", "OrdersPage", "ItemPage", "CheckoutStepOnePage"]
     assert live_crawl.login_page == "LoginPage"
     assert live_crawl.test_id_attribute == "data-test"
 
@@ -81,7 +82,17 @@ def test_crawl_dedupes_item_pages_and_stays_read_only(live_crawl):
     # Logout/reset are recorded as elements but never clicked: the crawl stayed logged in
     # long enough to reach checkout, which redirects to login when logged out.
     common = {e.name for e in live_crawl.common.elements}
-    assert {"logoutLink", "resetAppStateLink", "shoppingCartLink", "shoppingCartBadgeText"} <= common
+    assert {"logoutSidebarLink", "resetSidebarLink", "shoppingCartLink", "shoppingCartBadgeText"} <= common
+    log = "\n".join(live_crawl.log)
+    assert "skip  button 'Logout': unsafe" in log and "'Add to cart': unsafe or changes data" in log
+
+
+def test_crawl_follows_button_links_and_hidden_menus(live_crawl):
+    log = "\n".join(live_crawl.log)
+    # saucedemo-style cart: <button data-test="shopping-cart-link" aria-label="Cart">, no visible text.
+    assert "click button 'Cart': -> /cart.html" in log
+    # Orders is only in the hidden side menu: the crawler opens the menu first.
+    assert "click button 'Orders': -> /orders.html" in log
 
 
 def test_crawl_prefers_test_ids_and_shares_header(live_crawl):
@@ -106,7 +117,7 @@ def test_planner_validates_against_crawl(test_cases, saved_crawl):
     plans = {p.test_case_id: p for p in plan_tests(test_cases, saved_crawl, llm)}
     assert len(llm.calls) == 3  # 6 test cases, 2 per call
     tc6 = plans["TC-006"]
-    assert [s.element for s in tc6.steps] == ["", "openMenuButton", "logoutLink", "loginButton"]
+    assert [s.element for s in tc6.steps] == ["", "openMenuButton", "logoutSidebarLink", "loginButton"]
     assert any("noSuchElement" in u for u in tc6.unmapped)
     assert plans["TC-005"].unmapped == ["Check the product details (no specific value given)"]
 

@@ -16,13 +16,14 @@ function renderBadge() {
 function header() {
   return `<header><button id="react-burger-menu-btn" data-test="open-menu" onclick="document.querySelector('nav').style.display='block';document.querySelector('.overlay').style.display='block'">Open Menu</button>
   <span class="logo">Practice Shop</span>
-  <a class="cart" data-test="shopping-cart-link" onclick="go('cart.html')">Cart <span data-test="shopping-cart-badge"></span></a></header>
+  <button class="cart" data-test="shopping-cart-link" aria-label="Cart" onclick="go('cart.html')"><span data-test="shopping-cart-badge"></span></button></header>
   <div class="overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:5"
        onclick="this.style.display='none';document.querySelector('nav').style.display='none'"></div>
   <nav style="display:none;position:fixed;top:0;left:0;z-index:6;background:#fff">
-    <a id="inventory_sidebar_link" href="#" onclick="go('inventory.html')">All Items</a>
-    <a id="logout_sidebar_link" href="#" onclick="localStorage.clear(); go('index.html')">Logout</a>
-    <a id="reset_sidebar_link" href="#" onclick="localStorage.removeItem('cart'); renderBadge()">Reset App State</a>
+    <button data-test="inventory-sidebar-link" onclick="go('inventory.html')">All Items</button>
+    <button data-test="orders-sidebar-link" onclick="go('orders.html')">Orders</button>
+    <button data-test="logout-sidebar-link" onclick="localStorage.clear(); go('index.html')">Logout</button>
+    <button data-test="reset-sidebar-link" onclick="localStorage.removeItem('cart'); renderBadge()">Reset App State</button>
   </nav>`;
 }
 function addBtn(p) {

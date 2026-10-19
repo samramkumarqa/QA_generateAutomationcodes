@@ -72,7 +72,7 @@ PRACTICE_SHOP_PLANS = {
         steps=[
             S("login", comment="User is logged in"),
             S("click", "CommonPage", "openMenuButton", comment="Open the menu"),
-            S("click", "CommonPage", "logoutLink", comment="Click Logout"),
+            S("click", "CommonPage", "logoutSidebarLink", comment="Click Logout"),
             S("expectVisible", "LoginPage", "loginButton", comment="Login page is shown"),
             # Deliberately wrong element: validation must drop it and record it as unmapped.
             S("click", "CommonPage", "noSuchElement", comment="Bogus step"),

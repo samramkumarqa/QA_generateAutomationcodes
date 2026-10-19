@@ -45,11 +45,11 @@ def test_demo_mode_full_flow(monkeypatch):
     _button(at, "🕷️ Crawl").click().run()
     assert not at.exception, at.exception
     assert calls == {"url": "https://www.saucedemo.com/", "username": "standard_user"}
-    assert any("5 pages" in s.value for s in at.success)
+    assert any("6 pages" in s.value for s in at.success)
 
     _button(at, "⚙️ Generate code").click().run()
     assert not at.exception, at.exception
-    assert [m.value for m in at.metric] == ["6", "31", "2", "26"]
+    assert [m.value for m in at.metric] == ["6", "31", "2", "28"]
 
     dl = next(b for b in at.get("download_button") if "Playwright project" in b.proto.label)
     assert dl.proto.label.startswith("⬇️ Download Playwright project")
