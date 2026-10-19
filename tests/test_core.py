@@ -179,6 +179,16 @@ def test_specs_use_page_objects_and_mark_todos(project):
     assert "await checkoutStepOnePage.lastNameInput.fill(data.lastName);" in spec
     assert "await expect(checkoutStepOnePage.errorText).toContainText(data.expectedError);" in spec
     assert "// TODO (not automated)" in project["demo/tests/FR-05.spec.js"].decode()
+    # A click that leads to another page is followed by a wait for that page, so the next
+    # assertion can't hit the old page while it unloads (strict-mode failure on saucedemo).
+    detail = project["demo/tests/FR-04.spec.js"].decode()
+    assert ("await inventoryPage.trailBackpackLink.click();\n"
+            "    // Product name is shown\n"
+            "    await itemPage.waitForPage();\n"
+            "    await expect(itemPage.inventoryItemNameText).toBeVisible();") in detail
+    tc1 = project["demo/tests/FR-01.spec.js"].decode().split("TC-002")[0]
+    assert tc1.count("waitForPage") == 1  # after Login -> inventory; not before the first goto
+    assert "await loginPage.waitForPage" not in tc1
     login = project["demo/pages/LoginPage.js"].decode()
     assert "async login(username = process.env.APP_USERNAME" in login
     assert "secret_sauce" not in project["demo/.env.example"].decode()

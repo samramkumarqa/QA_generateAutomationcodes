@@ -59,6 +59,19 @@ class BasePage {
   }
 
   /**
+   * Wait until the browser is on this page. Specs call it after a click that navigates,
+   * so the next step doesn't run against the previous page while it is still unloading.
+   */
+  async waitForPage() {
+    if (!this.repo.url) return;
+    const path = this.repo.url
+      .split(':id')
+      .map((s) => s.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&'))
+      .join('[^/?#]+');
+    await this.page.waitForURL(new RegExp(`${path}(?:[?#].*)?$`, 'i'));
+  }
+
+  /**
    * Playwright locator for an element in the object repository.
    * @param {string} name
    * @returns {import('@playwright/test').Locator}
@@ -356,11 +369,21 @@ def spec_js(group: str, items: list[tuple[TestCaseIn, TestPlan]], crawl: CrawlRe
     for tc, plan in items:
         keys = {d.key: (camel(d.key) or d.key) for d in plan.data}
         lines, fixtures = [], set()
-        for s in plan.steps:
+        current = None  # page object the browser is known to be on
+        common = crawl.common.name if crawl.common else ""
+        for i, s in enumerate(plan.steps):
             code, needs = _step_js(s, crawl, keys)
             fixtures |= needs
             if s.comment:
                 lines.append(f"    // {_comment(s.comment)}")
+            if s.action == "goto":
+                current = s.page
+            elif s.action == "login":
+                current = None  # wherever the app lands after login
+            elif s.page and s.page != common and s.page != current:
+                if i > 0:  # moved to another page: wait for it before touching its elements
+                    lines.append(f"    await {fixture_name(s.page)}.waitForPage();")
+                current = s.page
             lines.append(f"    {code}")
         for u in plan.unmapped:
             lines.append(f"    // TODO (not automated): {_comment(u)}")
