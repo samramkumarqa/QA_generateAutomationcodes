@@ -1,0 +1,9 @@
+<!doctype html><html><head><title>Practice Shop</title><script src="app.js"></script></head><body>
+<script>requireLogin(); document.write(header());</script>
+<button data-test="back-to-products" onclick="go('inventory.html')">Back to products</button>
+<div id="d"></div>
+<script>
+const p = PRODUCTS.find(x => x.id == new URLSearchParams(location.search).get('id')) || PRODUCTS[0];
+document.getElementById('d').innerHTML = `<div data-test="inventory-item-name">${p.name}</div><div data-test="inventory-item-price">$${p.price}</div>${addBtn(p)}`;
+renderBadge();
+</script></body></html>

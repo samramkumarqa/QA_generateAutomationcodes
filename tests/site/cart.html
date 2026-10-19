@@ -1,0 +1,11 @@
+<!doctype html><html><head><title>Practice Shop</title><script src="app.js"></script></head><body>
+<script>requireLogin(); document.write(header());</script>
+<span data-test="title">Your Cart</span>
+<div id="c"></div>
+<button data-test="continue-shopping" onclick="go('inventory.html')">Continue Shopping</button>
+<button data-test="checkout" onclick="go('checkout-step-one.html')">Checkout</button>
+<script>
+document.getElementById('c').innerHTML = cart().map(id => { const p = PRODUCTS.find(x => x.id === id);
+  return `<div data-test="inventory-item-name">${p.name}</div>`; }).join('');
+renderBadge();
+</script></body></html>

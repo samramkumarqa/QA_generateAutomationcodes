@@ -1,0 +1,17 @@
+<!doctype html><html><head><title>Practice Shop</title><script src="app.js"></script></head><body>
+<h1>Practice Shop</h1>
+<form onsubmit="event.preventDefault(); login()">
+  <input data-test="username" placeholder="Username" autocomplete="off">
+  <input data-test="password" type="password" placeholder="Password">
+  <h3 data-test="error" style="display:none"></h3>
+  <input data-test="login-button" type="submit" value="Login">
+</form>
+<script>
+function login() {
+  const u = document.querySelector('[data-test=username]').value, p = document.querySelector('[data-test=password]').value;
+  const err = document.querySelector('[data-test=error]');
+  if (u === 'locked_out_user') { err.textContent = 'Epic sadface: Sorry, this user has been locked out.'; err.style.display = 'block'; return; }
+  if (u !== 'standard_user' || p !== 'secret_sauce') { err.textContent = 'Epic sadface: Username and password do not match any user in this service'; err.style.display = 'block'; return; }
+  localStorage.setItem('user', u); go('inventory.html');
+}
+</script></body></html>

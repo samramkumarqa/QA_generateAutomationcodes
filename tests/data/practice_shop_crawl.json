@@ -1,0 +1,345 @@
+{
+ "base_url": "http://localhost:8765",
+ "start_url": "http://localhost:8765/index.html",
+ "test_id_attribute": "data-test",
+ "login_page": "LoginPage",
+ "common": {
+  "name": "CommonPage",
+  "url": "",
+  "title": "Shared elements",
+  "is_login": false,
+  "elements": [
+   {
+    "name": "openMenuButton",
+    "kind": "button",
+    "strategy": "testId",
+    "value": "open-menu",
+    "role": "",
+    "description": "Button \"Open Menu\"",
+    "visible": true
+   },
+   {
+    "name": "shoppingCartLink",
+    "kind": "link",
+    "strategy": "testId",
+    "value": "shopping-cart-link",
+    "role": "",
+    "description": "Link \"Cart\"",
+    "visible": true
+   },
+   {
+    "name": "shoppingCartBadgeText",
+    "kind": "text",
+    "strategy": "testId",
+    "value": "shopping-cart-badge",
+    "role": "",
+    "description": "Text \"0\"",
+    "visible": false
+   },
+   {
+    "name": "allItemsLink",
+    "kind": "link",
+    "strategy": "css",
+    "value": "#inventory_sidebar_link",
+    "role": "",
+    "description": "Link \"All Items\"",
+    "visible": false
+   },
+   {
+    "name": "logoutLink",
+    "kind": "link",
+    "strategy": "css",
+    "value": "#logout_sidebar_link",
+    "role": "",
+    "description": "Link \"Logout\"",
+    "visible": false
+   },
+   {
+    "name": "resetAppStateLink",
+    "kind": "link",
+    "strategy": "css",
+    "value": "#reset_sidebar_link",
+    "role": "",
+    "description": "Link \"Reset App State\"",
+    "visible": false
+   },
+   {
+    "name": "titleText",
+    "kind": "text",
+    "strategy": "testId",
+    "value": "title",
+    "role": "",
+    "description": "Text \"Products\"",
+    "visible": true
+   }
+  ]
+ },
+ "pages": [
+  {
+   "name": "LoginPage",
+   "url": "/index.html",
+   "title": "Practice Shop",
+   "is_login": true,
+   "elements": [
+    {
+     "name": "practiceShopText",
+     "kind": "text",
+     "strategy": "text",
+     "value": "Practice Shop",
+     "role": "",
+     "description": "Text \"Practice Shop\"",
+     "visible": true
+    },
+    {
+     "name": "usernameInput",
+     "kind": "input",
+     "strategy": "testId",
+     "value": "username",
+     "role": "",
+     "description": "Input \"Username\"",
+     "visible": true
+    },
+    {
+     "name": "passwordInput",
+     "kind": "input",
+     "strategy": "testId",
+     "value": "password",
+     "role": "",
+     "description": "Input \"Password\"",
+     "visible": true
+    },
+    {
+     "name": "errorText",
+     "kind": "text",
+     "strategy": "testId",
+     "value": "error",
+     "role": "",
+     "description": "Text \"error\"",
+     "visible": false
+    },
+    {
+     "name": "loginButton",
+     "kind": "button",
+     "strategy": "testId",
+     "value": "login-button",
+     "role": "",
+     "description": "Button \"Login\"",
+     "visible": true
+    }
+   ]
+  },
+  {
+   "name": "InventoryPage",
+   "url": "/inventory.html",
+   "title": "Practice Shop",
+   "is_login": false,
+   "elements": [
+    {
+     "name": "trailBackpackLink",
+     "kind": "link",
+     "strategy": "css",
+     "value": "#item_1_title_link",
+     "role": "",
+     "description": "Link \"Trail Backpack\"",
+     "visible": true
+    },
+    {
+     "name": "inventoryItemPriceText",
+     "kind": "text",
+     "strategy": "text",
+     "value": "$29.99",
+     "role": "",
+     "description": "Text \"$29.99\"",
+     "visible": true
+    },
+    {
+     "name": "addToCartBackpackButton",
+     "kind": "button",
+     "strategy": "testId",
+     "value": "add-to-cart-backpack",
+     "role": "",
+     "description": "Button \"Add to cart\"",
+     "visible": true
+    },
+    {
+     "name": "bikeLightLink",
+     "kind": "link",
+     "strategy": "css",
+     "value": "#item_2_title_link",
+     "role": "",
+     "description": "Link \"Bike Light\"",
+     "visible": true
+    },
+    {
+     "name": "inventoryItemPriceText2",
+     "kind": "text",
+     "strategy": "text",
+     "value": "$9.99",
+     "role": "",
+     "description": "Text \"$9.99\"",
+     "visible": true
+    },
+    {
+     "name": "addToCartBikeLightButton",
+     "kind": "button",
+     "strategy": "testId",
+     "value": "add-to-cart-bike-light",
+     "role": "",
+     "description": "Button \"Add to cart\"",
+     "visible": true
+    },
+    {
+     "name": "boltTShirtLink",
+     "kind": "link",
+     "strategy": "css",
+     "value": "#item_3_title_link",
+     "role": "",
+     "description": "Link \"Bolt T-Shirt\"",
+     "visible": true
+    },
+    {
+     "name": "inventoryItemPriceText3",
+     "kind": "text",
+     "strategy": "text",
+     "value": "$15.99",
+     "role": "",
+     "description": "Text \"$15.99\"",
+     "visible": true
+    },
+    {
+     "name": "addToCartBoltTshirtButton",
+     "kind": "button",
+     "strategy": "testId",
+     "value": "add-to-cart-bolt-tshirt",
+     "role": "",
+     "description": "Button \"Add to cart\"",
+     "visible": true
+    }
+   ]
+  },
+  {
+   "name": "CartPage",
+   "url": "/cart.html",
+   "title": "Practice Shop",
+   "is_login": false,
+   "elements": [
+    {
+     "name": "continueShoppingButton",
+     "kind": "button",
+     "strategy": "testId",
+     "value": "continue-shopping",
+     "role": "",
+     "description": "Button \"Continue Shopping\"",
+     "visible": true
+    },
+    {
+     "name": "checkoutButton",
+     "kind": "button",
+     "strategy": "testId",
+     "value": "checkout",
+     "role": "",
+     "description": "Button \"Checkout\"",
+     "visible": true
+    }
+   ]
+  },
+  {
+   "name": "ItemPage",
+   "url": "/item.html",
+   "title": "Practice Shop",
+   "is_login": false,
+   "elements": [
+    {
+     "name": "backToProductsButton",
+     "kind": "button",
+     "strategy": "testId",
+     "value": "back-to-products",
+     "role": "",
+     "description": "Button \"Back to products\"",
+     "visible": true
+    },
+    {
+     "name": "inventoryItemNameText",
+     "kind": "text",
+     "strategy": "testId",
+     "value": "inventory-item-name",
+     "role": "",
+     "description": "Text \"Trail Backpack\"",
+     "visible": true
+    },
+    {
+     "name": "inventoryItemPriceText",
+     "kind": "text",
+     "strategy": "testId",
+     "value": "inventory-item-price",
+     "role": "",
+     "description": "Text \"$29.99\"",
+     "visible": true
+    }
+   ]
+  },
+  {
+   "name": "CheckoutStepOnePage",
+   "url": "/checkout-step-one.html",
+   "title": "Practice Shop",
+   "is_login": false,
+   "elements": [
+    {
+     "name": "firstNameInput",
+     "kind": "input",
+     "strategy": "testId",
+     "value": "firstName",
+     "role": "",
+     "description": "Input \"First Name\"",
+     "visible": true
+    },
+    {
+     "name": "lastNameInput",
+     "kind": "input",
+     "strategy": "testId",
+     "value": "lastName",
+     "role": "",
+     "description": "Input \"Last Name\"",
+     "visible": true
+    },
+    {
+     "name": "postalCodeInput",
+     "kind": "input",
+     "strategy": "testId",
+     "value": "postalCode",
+     "role": "",
+     "description": "Input \"Zip/Postal Code\"",
+     "visible": true
+    },
+    {
+     "name": "errorText",
+     "kind": "text",
+     "strategy": "testId",
+     "value": "error",
+     "role": "",
+     "description": "Text \"error\"",
+     "visible": false
+    },
+    {
+     "name": "cancelButton",
+     "kind": "button",
+     "strategy": "testId",
+     "value": "cancel",
+     "role": "",
+     "description": "Button \"Cancel\"",
+     "visible": true
+    },
+    {
+     "name": "continueButton",
+     "kind": "button",
+     "strategy": "testId",
+     "value": "continue",
+     "role": "",
+     "description": "Button \"Continue\"",
+     "visible": true
+    }
+   ]
+  }
+ ],
+ "skipped": []
+}

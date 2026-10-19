@@ -1,0 +1,21 @@
+<!doctype html><html><head><title>Practice Shop</title><script src="app.js"></script></head><body>
+<script>requireLogin(); document.write(header());</script>
+<span data-test="title">Checkout: Your Information</span>
+<form onsubmit="event.preventDefault(); next()">
+  <input data-test="firstName" placeholder="First Name">
+  <input data-test="lastName" placeholder="Last Name">
+  <input data-test="postalCode" placeholder="Zip/Postal Code">
+  <h3 data-test="error" style="display:none"></h3>
+  <button type="button" data-test="cancel" onclick="go('cart.html')">Cancel</button>
+  <input type="submit" data-test="continue" value="Continue">
+</form>
+<script>
+function next() {
+  const f = (t) => document.querySelector(`[data-test=${t}]`).value.trim();
+  const err = document.querySelector('[data-test=error]');
+  const missing = !f('firstName') ? 'First Name' : !f('lastName') ? 'Last Name' : !f('postalCode') ? 'Postal Code' : '';
+  if (missing) { err.textContent = `Error: ${missing} is required`; err.style.display = 'block'; return; }
+  go('checkout-complete.html');
+}
+renderBadge();
+</script></body></html>

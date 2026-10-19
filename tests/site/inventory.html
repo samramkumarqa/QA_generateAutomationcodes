@@ -1,0 +1,10 @@
+<!doctype html><html><head><title>Practice Shop</title><script src="app.js"></script></head><body>
+<script>requireLogin(); document.write(header());</script>
+<span data-test="title">Products</span>
+<div id="list"></div>
+<script>
+document.getElementById('list').innerHTML = PRODUCTS.map(p => `<div class="item">
+  <a id="item_${p.id}_title_link" href="#" onclick="go('item.html?id=${p.id}')">${p.name}</a>
+  <div data-test="inventory-item-price">$${p.price}</div>${addBtn(p)}</div>`).join('');
+renderBadge();
+</script></body></html>
