@@ -196,6 +196,7 @@ def test_specs_use_page_objects_and_mark_todos(project):
     assert "await loginPage.waitForPage" not in tc1
     login = project["demo/pages/LoginPage.js"].decode()
     assert "async login(username = process.env.APP_USERNAME" in login
+    assert "copy .env.example to .env" in login and "didn't succeed" in login
     assert "secret_sauce" not in project["demo/.env.example"].decode()
 
 

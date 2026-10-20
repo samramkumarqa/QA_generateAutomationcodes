@@ -281,10 +281,17 @@ def page_js(p: PageModel) -> str:
    * @param {{string}} [password]
    */
   async login(username = process.env.APP_USERNAME ?? '', password = process.env.APP_PASSWORD ?? '') {{
+    if (!username || !password) {{
+      throw new Error('No login credentials: copy .env.example to .env and set APP_USERNAME and APP_PASSWORD');
+    }}
     await this.goto();
     await this.{user.name}.fill(username);
     await this.{pwd.name}.fill(password);
     await this.{submit.name}.click();
+    // Fail here with a clear message, not 30 s later on the next page's first step.
+    await this.{pwd.name}.waitFor({{ state: 'hidden', timeout: 10_000 }}).catch(() => {{
+      throw new Error(`Login as "${{username}}" didn't succeed: still on the login page. Check APP_USERNAME / APP_PASSWORD in .env`);
+    }});
   }}
 """
     title = f" — {_comment(p.title)}" if p.title else ""
