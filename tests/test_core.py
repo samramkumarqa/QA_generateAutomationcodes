@@ -178,7 +178,12 @@ def test_specs_use_page_objects_and_mark_todos(project):
     assert "await loginPage.login();" in spec
     assert "await checkoutStepOnePage.lastNameInput.fill(data.lastName);" in spec
     assert "await expect(checkoutStepOnePage.errorText).toContainText(data.expectedError);" in spec
-    assert "// TODO (not automated)" in project["demo/tests/FR-05.spec.js"].decode()
+    fr5 = project["demo/tests/FR-05.spec.js"].decode()
+    assert "// TODO (not automated)" in fr5
+    # Incomplete test: automated steps first, then fixme so it can't show as passed.
+    assert fr5.rstrip().endswith(
+        "test.fixme(true, \"1 step(s) not automated yet: complete the TODOs above\");\n  });\n});")
+    assert "test.fixme" not in project["demo/tests/FR-03.spec.js"].decode()  # complete test
     # A click that leads to another page is followed by a wait for that page, so the next
     # assertion can't hit the old page while it unloads (strict-mode failure on saucedemo).
     detail = project["demo/tests/FR-04.spec.js"].decode()

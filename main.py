@@ -236,6 +236,19 @@ m1.metric("Test cases", len(plans))
 m2.metric("Automated steps", mapped)
 m3.metric("Steps left as TODO", todo)
 m4.metric("Files", len(files))
+complete = sum(1 for p in plans if p.steps and not p.unmapped)
+coverage = mapped / (mapped + todo) if mapped + todo else 0.0
+if coverage < config.MIN_STEP_COVERAGE:
+    st.warning(
+        f"Only **{coverage:.0%}** of the test steps match elements found on {result.base_url}. "
+        "Are these test cases written for this application? Generated code for steps that don't "
+        "match won't work: crawl the application the test cases describe, or load matching test cases.",
+        icon="⚠️",
+    )
+st.caption(
+    f"{complete} of {len(plans)} tests are fully automated. Tests with TODO steps still run their "
+    "automated steps, then end as **fixme** (skipped) in the report instead of passing."
+)
 if todo:
     with st.expander(f"⚠️ {todo} step(s) need attention (left as // TODO in the specs)"):
         for p in plans:

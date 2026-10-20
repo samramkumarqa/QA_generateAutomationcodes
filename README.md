@@ -29,7 +29,9 @@ Python · Playwright · Groq (GPT-OSS 120B) · Streamlit
 3. **Generate the project**: the model maps each manual step to `{page, element, action, data}`.
    The app checks every name against the crawl and renders the JavaScript itself, so generated code
    only uses locators that exist and is always valid. Steps that can't be mapped become `// TODO`
-   comments and are listed in the app and the generated README.
+   comments and are listed in the app and the generated README. A test with TODO steps still runs
+   its automated steps, then ends as `fixme` (skipped) so it never shows as a false pass. If few
+   steps match the crawled pages, the app warns that the test cases may be for another application.
 
 ## The generated project
 

@@ -49,4 +49,6 @@ def test_generated_project_runs_green(tmp_path, test_cases, saved_crawl, site_ur
     r = _run("npx playwright test --reporter=line", proj, env)
     out = r.stdout + r.stderr
     assert r.returncode == 0, out[-3000:]
-    assert "5 passed" in out and "1 skipped" in out
+    # TC-005: Run = N. TC-006: its automated steps run, but it has a TODO step, so it
+    # ends as fixme (skipped) instead of passing.
+    assert "4 passed" in out and "2 skipped" in out

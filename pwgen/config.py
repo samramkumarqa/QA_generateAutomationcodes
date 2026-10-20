@@ -55,4 +55,5 @@ def allow_any_site() -> bool:
 PLAN_BATCH_SIZE = 2            # test cases per LLM call
 PAGES_IN_PROMPT = 4            # most relevant pages shown to the model per test case
 ELEMENTS_IN_PROMPT = 60        # per page
+MIN_STEP_COVERAGE = 0.6       # below this share of mapped steps, warn that the tests may not fit the app
 PLAYWRIGHT_VERSION = "^1.56.0"

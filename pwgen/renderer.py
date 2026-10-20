@@ -389,6 +389,11 @@ def spec_js(group: str, items: list[tuple[TestCaseIn, TestPlan]], crawl: CrawlRe
             lines.append(f"    // TODO (not automated): {_comment(u)}")
         if not plan.steps:
             lines.append("    test.fixme(true, 'No steps could be mapped to page elements');")
+        elif plan.unmapped:
+            # The automated steps above still run (and fail the test if they break), but a test
+            # with missing steps must not show as passed: it ends as "fixme" until completed.
+            n = len(plan.unmapped)
+            lines.append(f"    test.fixme(true, {js(f'{n} step(s) not automated yet: complete the TODOs above')});")
         args = ", ".join(sorted(fixtures | {"page"}))
         title = _comment(f"{tc.id}: {tc.title}")
         expected = f"\n    // Expected: {_comment(tc.expected_result)}" if tc.expected_result else ""
@@ -509,7 +514,9 @@ when the page was crawled.
 
 ## Needs attention
 
-Steps that couldn't be mapped to an element are left as `// TODO` comments in the specs:
+Steps that couldn't be mapped to an element are left as `// TODO` comments in the specs.
+Those tests still run their automated steps, then end as **fixme** (shown as skipped) until you
+complete the TODOs and delete the `test.fixme(...)` line:
 
 {todo_md}
 
