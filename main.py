@@ -1,4 +1,4 @@
-"""Streamlit UI: approved test cases + a crawl of the app -> Playwright JS Page Object Model project.
+"""Streamlit UI: approved test cases + a crawl of the app -> Playwright (JS) or Selenium (Java) POM project.
 
 Flow: 1) load test cases  2) log in and crawl the app  3) generate and download the project.
 """
@@ -15,6 +15,7 @@ from pwgen.crawler import CrawlError, crawl, ensure_browser
 from pwgen.llm import GroqLLM, is_bad_generation
 from pwgen.planner import plan_tests
 from pwgen.renderer import build_project, zip_project
+from pwgen.selenium import build_selenium_project
 from pwgen.schemas import CrawlResult
 from pwgen.testcases import TestCaseFileError, read_test_cases
 
@@ -77,13 +78,13 @@ with st.sidebar:
             "with ALLOW_ANY_SITE=true to crawl your own application.",
             icon="🔒",
         )
-    st.caption("Built with Groq · Playwright · Streamlit")
+    st.caption("Built with Groq · Playwright · Selenium · Streamlit")
 
 st.title("🎭 AI Automation Code Generator")
 st.markdown(
-    "Turn approved manual test cases into a ready-to-run **Playwright (JavaScript) Page Object "
-    "Model** project. The app logs in to your application, visits every unique page, records its "
-    "elements with reliable locators, then maps each test step onto them."
+    "Turn approved manual test cases into a ready-to-run **Page Object Model** project in "
+    "**Playwright (JavaScript)** or **Selenium (Java + TestNG + Maven)**. The app logs in to your "
+    "application, visits every unique page, records its elements with reliable locators, then maps each test step onto them."
 )
 
 # ---------------------------------------------------------------- 1 · test cases
@@ -209,11 +210,15 @@ st.download_button("Save crawl (JSON)", result.model_dump_json(indent=1), "crawl
 
 # ---------------------------------------------------------------- 3 · generate
 
-st.subheader("3 · Generate the Playwright project")
+st.subheader("3 · Generate the automation project")
 if not key:
     st.warning("Add a Groq API key in the sidebar to continue.")
     st.stop()
 
+framework = st.radio(
+    "Framework", list(config.FRAMEWORKS), format_func=config.FRAMEWORKS.get, horizontal=True,
+    help="Same pages, locators and test data either way. You can switch after generating: no new AI call.",
+)
 batches = -(-len(test_cases) // config.PLAN_BATCH_SIZE)
 if st.button(f"⚙️ Generate code for {len(test_cases)} test cases", type="primary"):
     try:
@@ -221,14 +226,14 @@ if st.button(f"⚙️ Generate code for {len(test_cases)} test cases", type="pri
                            progress=progress_bar(f"Mapping test steps to page elements ({batches} calls)…"))
     except Exception as e:
         fail(e)
-    st.session_state.project = build_project(result, test_cases, plans)
     st.session_state.plans = plans
 
-files: dict[str, bytes] | None = st.session_state.get("project")
-if not files:
+plans = st.session_state.get("plans")
+if not plans:
     st.stop()
-
-plans = st.session_state.plans
+# The AI's step mapping is framework-neutral, so the chosen framework is rendered on every run.
+build = build_selenium_project if framework == "selenium" else build_project
+files: dict[str, bytes] = build(result, test_cases, plans)
 mapped = sum(len(p.steps) for p in plans)
 todo = sum(len(p.unmapped) for p in plans)
 m1, m2, m3, m4 = st.columns(4)
@@ -250,7 +255,7 @@ st.caption(
     "automated steps, then end as **fixme** (skipped) in the report instead of passing."
 )
 if todo:
-    with st.expander(f"⚠️ {todo} step(s) need attention (left as // TODO in the specs)"):
+    with st.expander(f"⚠️ {todo} step(s) need attention (left as // TODO in the tests)"):
         for p in plans:
             for u in p.unmapped:
                 st.markdown(f"- **{p.test_case_id}**: {u}")
@@ -258,14 +263,19 @@ if todo:
 paths = sorted(files)
 root = paths[0].split("/")[0]
 choice = st.selectbox("Browse the generated files", paths, format_func=lambda x: x.split("/", 1)[1],
-                      index=next((i for i, p in enumerate(paths) if p.endswith(".spec.js")), 0))
-lang = {"js": "javascript", "json": "json", "md": "markdown"}.get(choice.rsplit(".", 1)[-1], "text")
+                      index=next((i for i, p in enumerate(paths) if p.endswith((".spec.js", "Test.java"))), 0))
+lang = {"js": "javascript", "json": "json", "md": "markdown", "java": "java", "xml": "xml",
+        "properties": "properties"}.get(choice.rsplit(".", 1)[-1], "text")
 if choice.endswith(".xlsx"):
     st.info("Excel input sheet: RunControl (Run Y/N per test) and TestData (key/value per test).")
 else:
     st.code(files[choice].decode(), language=lang)
 
+label = "Selenium" if framework == "selenium" else "Playwright"
 st.download_button(
-    "⬇️ Download Playwright project (.zip)", zip_project(files), f"{root}.zip", "application/zip", type="primary"
+    f"⬇️ Download {label} project (.zip)", zip_project(files), f"{root}.zip", "application/zip", type="primary"
 )
-st.caption("Unzip, then: npm install · npx playwright install chromium · cp .env.example .env · npm test")
+if framework == "selenium":
+    st.caption("Unzip and open the folder in IntelliJ (Maven project), then: cp .env.example .env · mvn test")
+else:
+    st.caption("Unzip, then: npm install · npx playwright install chromium · cp .env.example .env · npm test")

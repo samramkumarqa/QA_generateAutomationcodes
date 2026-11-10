@@ -1,14 +1,15 @@
 # 🎭 AI Automation Code Generator
 
-Turn approved manual test cases into a ready-to-run **Playwright (JavaScript) Page Object Model** project.
+Turn approved manual test cases into a ready-to-run **Page Object Model** project in
+**Playwright (JavaScript)** or **Selenium (Java + TestNG + Maven)**, your choice.
 The app logs in to your web application, visits every unique page, records each page's elements with
 reliable locators, then maps every test step onto those elements. You download a zip, open it in
-IntelliJ / WebStorm / VS Code, `npm install`, and run.
+IntelliJ / WebStorm / VS Code, and run it with `npm test` or `mvn test`.
 
 Pairs with the [AI Test Case Generator](https://github.com/samramkumarqa/GenerativeAI): its approved
 Excel test pack is this app's input.
 
-Python · Playwright · Groq (GPT-OSS 120B) · Streamlit
+Python · Playwright · Selenium · Groq (GPT-OSS 120B) · Streamlit
 
 ---
 
@@ -27,7 +28,8 @@ Python · Playwright · Groq (GPT-OSS 120B) · Streamlit
    - The crawl is read-only: it never clicks Logout, Delete, Pay, Reset and similar, and never
      submits forms other than the login.
 3. **Generate the project**: the model maps each manual step to `{page, element, action, data}`.
-   The app checks every name against the crawl and renders the JavaScript itself, so generated code
+   The app checks every name against the crawl and renders the code itself (JavaScript or Java),
+   so generated code
    only uses locators that exist and is always valid. Steps that can't be mapped become `// TODO`
    comments and are listed in the app and the generated README. A test with TODO steps still runs
    its automated steps, then ends as `fixme` (skipped) so it never shows as a false pass. If few
@@ -68,6 +70,51 @@ test("TC-004: Verify checkout requires the first name", async ({ cartPage, check
   await expect(checkoutStepOnePage.errorText).toContainText(data.expectedError);
 });
 ```
+
+### Selenium (Java + TestNG + Maven)
+
+Choose **Selenium** before or after generating (the AI's step mapping is reused; no new call).
+Same pages, object-repository JSON and TestData.xlsx as the Playwright project:
+
+```
+selenium-pom-<site>/
+├── pom.xml                      selenium-java, testng, jackson-databind, poi-ooxml
+├── testng.xml                   one <class> per requirement
+├── .env.example                 BASE_URL, APP_USERNAME, APP_PASSWORD, BROWSER, HEADLESS
+├── src/test/java/com/automation/
+│   ├── base/BaseTest.java       fresh browser per test, screenshot on failure
+│   ├── base/DriverFactory.java  Chrome / Edge / Firefox (Selenium Manager fetches the driver)
+│   ├── pages/BasePage.java      locators from the repository; click/type/select with explicit waits
+│   ├── pages/*Page.java         a constant per element, LoginPage.login()
+│   ├── tests/FR01Test.java ...  one class per requirement, one @Test per test case
+│   └── utils/Config.java, TestData.java
+└── src/test/resources/          object-repository/*.json, test-data/TestData.xlsx, config.properties
+```
+
+```java
+@Test(description = "TC-004: Verify checkout requires the first name")
+public void tc004VerifyCheckoutRequiresTheFirstName() {
+    if (!TestData.shouldRun("TC-004")) throw new SkipException("Run = N in test-data/TestData.xlsx");
+    Map<String, String> data = TestData.get("TC-004");
+    ...
+    loginPage.login();
+    inventoryPage.waitForPage();
+    inventoryPage.click(InventoryPage.ADD_TO_CART_BACKPACK_BUTTON);
+    commonPage.click(CommonPage.SHOPPING_CART_LINK);
+    cartPage.waitForPage();
+    cartPage.click(CartPage.CHECKOUT_BUTTON);
+    checkoutStepOnePage.waitForPage();
+    checkoutStepOnePage.type(CheckoutStepOnePage.LAST_NAME_INPUT, data.get("lastName"));
+    checkoutStepOnePage.type(CheckoutStepOnePage.POSTAL_CODE_INPUT, data.get("postalCode"));
+    checkoutStepOnePage.click(CheckoutStepOnePage.CONTINUE_BUTTON);
+    Assert.assertTrue(checkoutStepOnePage.containsText(CheckoutStepOnePage.ERROR_TEXT, data.get("expectedError")),
+            "errorText should contain " + data.get("expectedError"));
+}
+```
+
+Run with `mvn test` (or `mvn test -Dbrowser=edge -Dheadless=true`), or from `testng.xml` in IntelliJ.
+Playwright's role/label/text locators are translated to equivalent XPath for Selenium; test IDs,
+placeholders and CSS stay CSS.
 
 ## How it works
 
@@ -115,6 +162,8 @@ The suite crawls a small local practice shop (`tests/site`, a single-page-style 
 JS navigation, and Logout/Reset links that must never be clicked), validates plans, checks every
 generated `.js` file with `node --check`, and **npm-installs the generated project and runs it with
 Playwright**, expecting 5 passed and 1 skipped (via the Run = N switch in the input sheet).
+For Selenium it checks the generated pom.xml and testng.xml and compiles every generated Java file
+with `javac` against small API stubs in `tests/java_stubs`.
 A fake model stands in for Groq, so tests need no API key.
 
 ## Limitations

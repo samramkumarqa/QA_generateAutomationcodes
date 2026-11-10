@@ -24,7 +24,11 @@ def _app(monkeypatch, any_site=False, plans=None):
     monkeypatch.setenv("ALLOW_ANY_SITE", "true" if any_site else "false")
     monkeypatch.setattr(pwgen.crawler, "crawl", fake_crawl)
     monkeypatch.setattr(pwgen.crawler, "ensure_browser", lambda: None)
-    monkeypatch.setattr(pwgen.llm, "GroqLLM", lambda api_key, model: FakePlannerLLM(*([plans] if plans else [])))
+    def fake_llm(api_key, model):
+        calls["llm"] = calls.get("llm", 0) + 1
+        return FakePlannerLLM(*([plans] if plans else []))
+
+    monkeypatch.setattr(pwgen.llm, "GroqLLM", fake_llm)
     return AppTest.from_file(str(ROOT / "main.py"), default_timeout=60), calls
 
 
@@ -44,7 +48,7 @@ def test_demo_mode_full_flow(monkeypatch):
     assert site.options[0].startswith("Swag Labs")
     _button(at, "🕷️ Crawl").click().run()
     assert not at.exception, at.exception
-    assert calls == {"url": "https://www.saucedemo.com/", "username": "standard_user"}
+    assert {k: calls[k] for k in ("url", "username")} == {"url": "https://www.saucedemo.com/", "username": "standard_user"}
     assert any("6 pages" in s.value for s in at.success)
 
     _button(at, "⚙️ Generate code").click().run()
@@ -55,6 +59,15 @@ def test_demo_mode_full_flow(monkeypatch):
 
     dl = next(b for b in at.get("download_button") if "Playwright project" in b.proto.label)
     assert dl.proto.label.startswith("⬇️ Download Playwright project")
+
+    # Switching to Selenium re-renders the same plans as a Java project, without another AI call.
+    llm_calls = calls.get("llm", 0)
+    next(r for r in at.radio if r.label == "Framework").set_value("selenium").run()
+    assert not at.exception, at.exception
+    assert calls.get("llm", 0) == llm_calls
+    assert [m.value for m in at.metric][:3] == ["6", "31", "2"]
+    assert any(b.proto.label == "⬇️ Download Selenium project (.zip)" for b in at.get("download_button"))
+    assert any("mvn test" in c.value for c in at.caption)
 
 
 def test_local_mode_asks_for_url_and_credentials(monkeypatch):
