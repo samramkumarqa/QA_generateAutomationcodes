@@ -96,6 +96,12 @@ def test_tests_use_page_objects_waits_and_mark_todos(project):
     assert "public class InventoryPage extends CommonPage" in inv and 'super(driver, "InventoryPage");' in inv
 
 
+def test_wait_for_page_uses_ready_element(project):
+    base = project[f"{J}/pages/BasePage.java"].decode()
+    assert 'readyElement = repo.path("readyElement").asText(readyElement);' in base
+    assert "if (!readyElement.isEmpty()) visible(readyElement);" in base
+
+
 def test_helpers():
     assert constant("shoppingCartLink") == "SHOPPING_CART_LINK"
     assert constant("item4TitleLink") == "ITEM4_TITLE_LINK"

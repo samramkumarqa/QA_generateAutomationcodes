@@ -61,6 +61,8 @@ class BasePage {
   /**
    * Wait until the browser is on this page. Specs call it after a click that navigates,
    * so the next step doesn't run against the previous page while it is still unloading.
+   * Single-page apps change the URL before they redraw, so it then also waits for an element
+   * only this page has (readyElement in the object repository).
    */
   async waitForPage() {
     if (!this.repo.url) return;
@@ -69,6 +71,7 @@ class BasePage {
       .map((s) => s.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&'))
       .join('[^/?#]+');
     await this.page.waitForURL(new RegExp(`${path}(?:[?#].*)?$`, 'i'));
+    if (this.repo.readyElement) await this.el(this.repo.readyElement).waitFor({ state: 'visible' });
   }
 
   /**
@@ -257,7 +260,35 @@ def env_example(crawl: CrawlResult) -> str:
 
 # ---------------------------------------------------------------- page objects
 
-def repo_json(p: PageModel) -> str:
+def ready_elements(crawl: CrawlResult) -> dict[str, str]:
+    """Per page, a visible element that no other page has (e.g. the "Back to products" button).
+
+    waitForPage() waits for it after the URL changes: single-page apps update the URL before they
+    redraw, so checking the URL alone can let the next step see the previous page's elements.
+    """
+    def key(e: Element) -> tuple:
+        return (e.strategy, e.role, e.value)
+
+    out = {}
+    for p in crawl.pages:
+        elsewhere = {key(e) for q in crawl.pages if q is not p for e in q.elements}
+        if crawl.common:
+            elsewhere |= {key(e) for e in crawl.common.elements}
+        # Not a button that changes when used ("Add to cart" turns into "Remove"), so the page is
+        # recognised in any state.
+        candidates = [e for e in p.elements if e.visible and key(e) not in elsewhere
+                      and not any(w in f"{e.name} {e.value} {e.description}".lower()
+                                  for w in config.STATE_CHANGING_WORDS)]
+        # Prefer form fields and buttons (part of the page's layout), then links, then text;
+        # test ids before other locators.
+        rank = {"input": 0, "textarea": 0, "dropdown": 0, "checkbox": 1, "radio": 1, "button": 1, "link": 2}
+        candidates.sort(key=lambda e: (rank.get(e.kind, 3), e.strategy != "testId"))
+        if candidates:
+            out[p.name] = candidates[0].name
+    return out
+
+
+def repo_json(p: PageModel, ready: str = "") -> str:
     elements = OrderedDict()
     for e in p.elements:
         d = {"strategy": e.strategy, "value": e.value}
@@ -266,7 +297,10 @@ def repo_json(p: PageModel) -> str:
         d["kind"] = e.kind
         d["description"] = e.description
         elements[e.name] = d
-    return json.dumps({"page": p.name, "url": p.url, "elements": elements}, indent=2, ensure_ascii=False) + "\n"
+    head = {"page": p.name, "url": p.url}
+    if ready:
+        head["readyElement"] = ready
+    return json.dumps({**head, "elements": elements}, indent=2, ensure_ascii=False) + "\n"
 
 
 def _getters(elements: list[Element]) -> str:
@@ -606,9 +640,10 @@ def build_project(
     common = crawl.common or PageModel(name="CommonPage", url="", elements=[])
     put("pages/CommonPage.js", common_page_js(crawl.common))
     put("object-repository/CommonPage.json", repo_json(common))
+    ready = ready_elements(crawl)
     for p in crawl.pages:
         put(f"pages/{p.name}.js", page_js(p))
-        put(f"object-repository/{p.name}.json", repo_json(p))
+        put(f"object-repository/{p.name}.json", repo_json(p, ready.get(p.name, "")))
     put("fixtures/pages.js", fixtures_js(crawl))
     put("utils/testData.js", TEST_DATA_JS)
     put("scripts/setup.js", SETUP_JS)

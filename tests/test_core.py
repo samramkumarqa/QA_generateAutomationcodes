@@ -200,6 +200,18 @@ def test_specs_use_page_objects_and_mark_todos(project):
     assert "secret_sauce" not in project["demo/.env.example"].decode()
 
 
+def test_wait_for_page_also_waits_for_the_page_itself(project, saved_crawl):
+    from pwgen.renderer import ready_elements
+
+    ready = ready_elements(saved_crawl)
+    # Unique to its page, visible, and not a button that changes when clicked (Add to cart -> Remove).
+    assert ready["ItemPage"] == "backToProductsButton"
+    assert ready["CheckoutStepOnePage"] == "firstNameInput"
+    assert not any("addToCart" in v for v in ready.values())
+    assert json.loads(project["demo/object-repository/ItemPage.json"])["readyElement"] == "backToProductsButton"
+    assert "this.el(this.repo.readyElement).waitFor({ state: 'visible' })" in project["demo/pages/BasePage.js"].decode()
+
+
 def test_npm_test_sets_itself_up(project):
     pkg = json.loads(project["demo/package.json"])
     for script in ("test", "test:headed", "test:ui"):

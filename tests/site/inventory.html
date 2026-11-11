@@ -4,7 +4,12 @@
 <div id="list"></div>
 <script>
 document.getElementById('list').innerHTML = PRODUCTS.map(p => `<div class="item">
-  <a id="item_${p.id}_title_link" href="#" onclick="go('item.html?id=${p.id}')">${p.name}</a>
+  <a id="item_${p.id}_title_link" href="#" onclick="openItem(${p.id}); return false"><span data-test="inventory-item-name">${p.name}</span></a>
   <div data-test="inventory-item-price">$${p.price}</div>${addBtn(p)}</div>`).join('');
 renderBadge();
+// Like saucedemo (a React app): the URL changes first, the page redraws a moment later.
+function openItem(id) {
+  history.pushState({}, '', 'item.html?id=' + id);
+  setTimeout(() => location.replace('item.html?id=' + id), 400);
+}
 </script></body></html>

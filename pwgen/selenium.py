@@ -15,7 +15,7 @@ from urllib.parse import urlparse
 
 from . import config
 from .naming import camel
-from .renderer import _comment, repo_json, test_data_xlsx, _login_parts
+from .renderer import _comment, ready_elements, repo_json, test_data_xlsx, _login_parts
 from .schemas import CrawlResult, Element, PageModel, PlannedStep, TestCaseIn, TestPlan
 
 PKG = "com.automation"
@@ -546,6 +546,7 @@ public abstract class BasePage {{
     private final Map<String, JsonNode> elements = new LinkedHashMap<>();
     private String pageName = "";
     private String url = "";
+    private String readyElement = "";
 
     /** @param repoNames object repositories to merge, later ones win (CommonPage first, then the page). */
     protected BasePage(WebDriver driver, String... repoNames) {{
@@ -555,6 +556,7 @@ public abstract class BasePage {{
             JsonNode repo = repo(repoName);
             pageName = repo.path("page").asText(repoName);
             url = repo.path("url").asText("");
+            readyElement = repo.path("readyElement").asText(readyElement);
             Iterator<Map.Entry<String, JsonNode>> it = repo.path("elements").fields();
             while (it.hasNext()) {{
                 Map.Entry<String, JsonNode> e = it.next();
@@ -663,7 +665,8 @@ public abstract class BasePage {{
 
     /**
      * Wait until the browser is on this page. Tests call it after a click that navigates, so the next
-     * step doesn't run against the previous page while it is still unloading.
+     * step doesn't run against the previous page while it is still unloading. Single-page apps change
+     * the URL before they redraw, so it then also waits for an element only this page has.
      */
     public void waitForPage() {{
         if (url.isEmpty()) return;
@@ -675,6 +678,7 @@ public abstract class BasePage {{
         }}
         Pattern p = Pattern.compile(regex + "(?:[?#].*)?$", Pattern.CASE_INSENSITIVE);
         wait.until(d -> p.matcher(d.getCurrentUrl()).find());
+        if (!readyElement.isEmpty()) visible(readyElement);
     }}
 
     // ------------------------------------------------------------ actions
@@ -1094,9 +1098,10 @@ def build_selenium_project(
     common = crawl.common or PageModel(name="CommonPage", url="", elements=[])
     put(f"{SRC}/pages/CommonPage.java", common_page_java(crawl.common))
     put(f"{RES}/object-repository/CommonPage.json", repo_json(common))
+    ready = ready_elements(crawl)
     for p in crawl.pages:
         put(f"{SRC}/pages/{p.name}.java", page_java(p))
-        put(f"{RES}/object-repository/{p.name}.json", repo_json(p))
+        put(f"{RES}/object-repository/{p.name}.json", repo_json(p, ready.get(p.name, "")))
     put(f"{RES}/test-data/TestData.xlsx", test_data_xlsx(test_cases, by_id))
     for cls, group, items in classes:
         put(f"{SRC}/tests/{cls}.java", test_class_java(cls, group, items, crawl))

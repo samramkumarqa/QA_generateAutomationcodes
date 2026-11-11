@@ -32,11 +32,11 @@ def test_generated_project_runs_green(tmp_path, test_cases, saved_crawl, site_ur
         out.write_bytes(data)
     proj = tmp_path / "gen"
 
-    # Turn TC-005 off in the input sheet to prove RunControl is honoured.
+    # Turn TC-002 off in the input sheet to prove RunControl is honoured.
     xlsx = proj / "test-data" / "TestData.xlsx"
     wb = load_workbook(xlsx)
     for row in wb["RunControl"].iter_rows(min_row=2):
-        if row[0].value == "TC-005":
+        if row[0].value == "TC-002":
             row[3].value = "N"
     wb.save(xlsx)
 
@@ -52,9 +52,11 @@ def test_generated_project_runs_green(tmp_path, test_cases, saved_crawl, site_ur
     out = r.stdout + r.stderr
     assert r.returncode == 0, out[-3000:]
     assert "First run: installing npm packages" in out
-    # TC-005: Run = N. TC-006: its automated steps run, but it has a TODO step, so it
-    # ends as fixme (skipped) instead of passing.
-    assert "4 passed" in out and "2 skipped" in out
+    # TC-002: Run = N. TC-005 and TC-006: their automated steps run (and would fail the test if
+    # they broke), but each has a TODO step, so they end as fixme (skipped) instead of passing.
+    # TC-005 opens a product: the site changes the URL before it redraws, like saucedemo, so
+    # waitForPage() must wait for the details page itself, not just the URL.
+    assert "3 passed" in out and "3 skipped" in out and "failed" not in out, out[-4000:]
 
     # Second run: nothing to install.
     r = _run("npm test -- --reporter=line", proj, env)
