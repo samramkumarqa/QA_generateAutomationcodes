@@ -76,6 +76,8 @@ def pom_xml(project: str) -> str:
     <testng.version>{v['testng']}</testng.version>
     <jackson.version>{v['jackson']}</jackson.version>
     <poi.version>{v['poi']}</poi.version>
+    <slf4j.version>{v['slf4j']}</slf4j.version>
+    <log4j.version>{v['log4j']}</log4j.version>
   </properties>
 
   <dependencies>
@@ -101,6 +103,25 @@ def pom_xml(project: str) -> str:
       <groupId>org.apache.poi</groupId>
       <artifactId>poi-ooxml</artifactId>
       <version>${{poi.version}}</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- Quiet console: route the libraries' logging (log4j, SLF4J) to a no-op logger. -->
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-to-slf4j</artifactId>
+      <version>${{log4j.version}}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${{slf4j.version}}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-nop</artifactId>
+      <version>${{slf4j.version}}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -356,6 +377,8 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -373,6 +396,17 @@ import {PKG}.utils.Config;
  * SE_MSEDGEDRIVER / SE_GECKODRIVER) to a driver you downloaded yourself.
  */
 public final class DriverFactory {{
+    // A browser newer than this Selenium release logs "Unable to find CDP implementation" on every
+    // start. Only DevTools features need CDP, so keep those notices out of the console.
+    // (Kept in fields: java.util.logging forgets levels set on loggers nobody references.)
+    private static final Logger CDP_LOG = Logger.getLogger("org.openqa.selenium.devtools");
+    private static final Logger CHROMIUM_LOG = Logger.getLogger("org.openqa.selenium.chromium");
+
+    static {{
+        CDP_LOG.setLevel(Level.SEVERE);
+        CHROMIUM_LOG.setLevel(Level.SEVERE);
+    }}
+
     private DriverFactory() {{
     }}
 

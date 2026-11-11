@@ -52,7 +52,10 @@ def test_pom_and_suite_are_valid_xml(project):
     ns = {"m": "http://maven.apache.org/POM/4.0.0"}
     pom = ET.fromstring(project["demo/pom.xml"])
     deps = {d.find("m:artifactId", ns).text for d in pom.find("m:dependencies", ns)}
-    assert deps == {"selenium-java", "testng", "jackson-databind", "poi-ooxml"}
+    assert deps == {"selenium-java", "testng", "jackson-databind", "poi-ooxml",
+                    "log4j-to-slf4j", "slf4j-api", "slf4j-nop"}  # the last three keep the console quiet
+    version = pom.find("m:properties/m:selenium.version", ns).text
+    assert tuple(map(int, version.split("."))) >= (4, 52, 0)  # supports Chrome DevTools up to v156
     suite = ET.fromstring(project["demo/testng.xml"].split(b"\n", 2)[2])  # skip the DOCTYPE line
     assert [c.get("name") for c in suite.iter("class")] == [f"com.automation.tests.FR0{i}Test" for i in range(1, 6)]
 

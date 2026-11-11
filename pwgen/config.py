@@ -58,12 +58,14 @@ ELEMENTS_IN_PROMPT = 60        # per page
 MIN_STEP_COVERAGE = 0.6       # below this share of mapped steps, warn that the tests may not fit the app
 PLAYWRIGHT_VERSION = "^1.56.0"
 SELENIUM_VERSIONS = {          # Selenium (Java + TestNG + Maven) projects
-    "selenium": "4.27.0",
+    "selenium": "4.52.0",       # knows Chrome DevTools v154-156
     "testng": "7.10.2",
     "jackson": "2.18.2",
     "poi": "5.3.0",
     "compiler_plugin": "3.13.0",
     "surefire_plugin": "3.5.2",
+    "slf4j": "2.0.16",
+    "log4j": "2.24.3",
 }
 FRAMEWORKS = {
     "playwright": "Playwright (JavaScript)",

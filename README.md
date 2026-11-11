@@ -78,7 +78,7 @@ Same pages, object-repository JSON and TestData.xlsx as the Playwright project:
 
 ```
 selenium-pom-<site>/
-├── pom.xml                      selenium-java, testng, jackson-databind, poi-ooxml
+├── pom.xml                      selenium-java, testng, jackson-databind, poi-ooxml (+ no-op logging)
 ├── testng.xml                   one <class> per requirement
 ├── .env.example                 BASE_URL, APP_USERNAME, APP_PASSWORD, BROWSER, HEADLESS
 ├── src/test/java/com/automation/
