@@ -5,6 +5,7 @@ Set PW_TEST_VERSION to pin @playwright/test to the browser build installed on th
 """
 
 import io
+import json
 import os
 import shutil
 import subprocess
@@ -39,16 +40,23 @@ def test_generated_project_runs_green(tmp_path, test_cases, saved_crawl, site_ur
             row[3].value = "N"
     wb.save(xlsx)
 
-    r = _run("npm install --silent --no-audit --no-fund", proj)
-    assert r.returncode == 0, r.stderr
     pin = os.getenv("PW_TEST_VERSION")
-    if pin:
-        assert _run(f"npm install --silent --no-audit --no-fund -D @playwright/test@{pin}", proj).returncode == 0
+    if pin:  # match the browser build installed on this machine
+        pkg = json.loads((proj / "package.json").read_text())
+        pkg["devDependencies"]["@playwright/test"] = pin
+        (proj / "package.json").write_text(json.dumps(pkg, indent=2))
 
+    # One command, as a user would run it: the pretest step installs the packages first.
     env = {**os.environ, "BASE_URL": f"{site_url}/", "APP_USERNAME": "standard_user", "APP_PASSWORD": "secret_sauce"}
-    r = _run("npx playwright test --reporter=line", proj, env)
+    r = _run("npm test -- --reporter=line", proj, env)
     out = r.stdout + r.stderr
     assert r.returncode == 0, out[-3000:]
+    assert "First run: installing npm packages" in out
     # TC-005: Run = N. TC-006: its automated steps run, but it has a TODO step, so it
     # ends as fixme (skipped) instead of passing.
     assert "4 passed" in out and "2 skipped" in out
+
+    # Second run: nothing to install.
+    r = _run("npm test -- --reporter=line", proj, env)
+    out = r.stdout + r.stderr
+    assert r.returncode == 0 and "First run" not in out, out[-2000:]

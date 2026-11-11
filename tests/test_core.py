@@ -145,7 +145,7 @@ def test_project_layout(project):
         "package.json", "playwright.config.js", ".env.example", ".gitignore", "README.md",
         "pages/BasePage.js", "pages/CommonPage.js", "pages/LoginPage.js", "pages/InventoryPage.js",
         "object-repository/CommonPage.json", "object-repository/LoginPage.json",
-        "fixtures/pages.js", "utils/testData.js", "test-data/TestData.xlsx",
+        "fixtures/pages.js", "utils/testData.js", "scripts/setup.js", "test-data/TestData.xlsx",
         "tests/FR-01.spec.js", "tests/FR-05.spec.js",
     }
     assert expected <= names
@@ -198,6 +198,15 @@ def test_specs_use_page_objects_and_mark_todos(project):
     assert "async login(username = process.env.APP_USERNAME" in login
     assert "copy .env.example to .env" in login and "didn't succeed" in login
     assert "secret_sauce" not in project["demo/.env.example"].decode()
+
+
+def test_npm_test_sets_itself_up(project):
+    pkg = json.loads(project["demo/package.json"])
+    for script in ("test", "test:headed", "test:ui"):
+        assert pkg["scripts"]["pre" + script] == "node scripts/setup.js"
+    setup = project["demo/scripts/setup.js"].decode()
+    assert "npm', ['install'" in setup and "'playwright', 'install', 'chromium'" in setup
+    assert "npx playwright install" not in project["demo/README.md"].decode().split("## Run")[0]
 
 
 def test_zip_round_trip(project):

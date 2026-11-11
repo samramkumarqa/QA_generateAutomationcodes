@@ -53,7 +53,7 @@ def test_demo_mode_full_flow(monkeypatch):
 
     _button(at, "⚙️ Generate code").click().run()
     assert not at.exception, at.exception
-    assert [m.value for m in at.metric] == ["6", "31", "2", "28"]
+    assert [m.value for m in at.metric] == ["6", "31", "2", "29"]
     assert not at.warning  # the sample pack fits saucedemo
     assert any("4 of 6 tests are fully automated" in c.value for c in at.caption)
 

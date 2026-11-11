@@ -278,4 +278,4 @@ st.download_button(
 if framework == "selenium":
     st.caption("Unzip and open the folder in IntelliJ (Maven project), then: cp .env.example .env · mvn test")
 else:
-    st.caption("Unzip, then: npm install · npx playwright install chromium · cp .env.example .env · npm test")
+    st.caption("Unzip, then: cp .env.example .env · npm test (the first run installs everything it needs; needs Node.js)")

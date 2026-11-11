@@ -4,7 +4,8 @@ Turn approved manual test cases into a ready-to-run **Page Object Model** projec
 **Playwright (JavaScript)** or **Selenium (Java + TestNG + Maven)**, your choice.
 The app logs in to your web application, visits every unique page, records each page's elements with
 reliable locators, then maps every test step onto those elements. You download a zip, open it in
-IntelliJ / WebStorm / VS Code, and run it with `npm test` or `mvn test`.
+IntelliJ / WebStorm / VS Code, and run it with `npm test` or `mvn test`. Either way it's one command:
+the first run downloads what it needs.
 
 Pairs with the [AI Test Case Generator](https://github.com/samramkumarqa/GenerativeAI): its approved
 Excel test pack is this app's input.
@@ -39,7 +40,7 @@ Python · Playwright · Selenium · Groq (GPT-OSS 120B) · Streamlit
 
 ```
 playwright-pom-<site>/
-├── package.json                 npm test · test:headed · test:ui · report
+├── package.json                 npm test · test:headed · test:ui · report (first run installs everything)
 ├── playwright.config.js         baseURL + testIdAttribute from the crawl, traces/screenshots on failure
 ├── .env.example                 BASE_URL, APP_USERNAME, APP_PASSWORD
 ├── pages/
@@ -51,6 +52,7 @@ playwright-pom-<site>/
 ├── fixtures/pages.js            page objects as Playwright fixtures
 ├── test-data/TestData.xlsx      input sheet: RunControl (Run Y/N) + TestData (key/value per test)
 ├── utils/testData.js            reads the input sheet
+├── scripts/setup.js             first-run setup: npm install + Playwright browser (run by npm test)
 └── tests/FR-01.spec.js ...      one spec per requirement, one test per test case
 ```
 
